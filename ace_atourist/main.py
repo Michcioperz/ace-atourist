@@ -19,20 +19,23 @@ def main():
             "rustc -o $out -g --edition 2018 -C codegen-units=1 -C lto=fat -C target-cpu=x86-64 -C opt-level=3 -C target-feature=+crt-static $in",
         )
         ninja.rule(
-            "gplusplus",
-            "g++ -o $out -static -O3 -g -march=x86-64 -std=c++17 $in",
+            "gplusplus", "g++ -o $out -static -O3 -g -march=x86-64 -std=c++17 $in"
         )
         ninja.rule(
             "zig",
             "zig build-exe --output-dir tmp --single-threaded -mcpu x86_64 --release-fast $in",
         )
         ninja.rule(
-            "oiejq-bin", "sio2jail --mount-namespace off --pid-namespace off --uts-namespace off --ipc-namespace off --net-namespace off -s -f 3 -o oiaug -m $mem --instruction-count-limit $instr -- ./$exe <$inp >$outp 2>$errp 3>$infp"
+            "oiejq-bin",
+            "sio2jail --mount-namespace off --pid-namespace off --uts-namespace off --ipc-namespace off --net-namespace off -s -f 3 -o oiaug -m $mem --instruction-count-limit $instr -- ./$exe <$inp >$outp 2>$errp 3>$infp",
         )
-        customCompareSourceExists = False # TODO
+        customCompareSourceExists = False  # TODO
         customCompare = False
         if Path("custom-compare").exists() or customCompareSourceExists:
-            ninja.rule("diff", "./custom-compare $in >/dev/null && echo 1 > $out || echo 0 > $out")
+            ninja.rule(
+                "diff",
+                "./custom-compare $in >/dev/null && echo 1 > $out || echo 0 > $out",
+            )
             customCompare = True
         else:
             ninja.rule(
@@ -77,7 +80,12 @@ def main():
                         exe=str(tmp / prog_stem),
                     ),
                 )
-                ninja.build([corr], "diff", [outfile, outp], ["custom-compare"] if customCompare else [])
+                ninja.build(
+                    [corr],
+                    "diff",
+                    [outfile, outp],
+                    ["custom-compare"] if customCompare else [],
+                )
                 timp = str(tmp / f"{prog_stem}.{test_stem}.tim")
                 memp = str(tmp / f"{prog_stem}.{test_stem}.mem")
                 timps.append(timp)
@@ -114,7 +122,12 @@ def main():
                         exe=tmp / prog_stem,
                     ),
                 )
-                ninja.build([corr], "diff", [outfile, outp], ["custom-compare"] if customCompare else [])
+                ninja.build(
+                    [corr],
+                    "diff",
+                    [outfile, outp],
+                    ["custom-compare"] if customCompare else [],
+                )
                 timp = str(tmp / f"{prog_stem}.{test_stem}.tim")
                 memp = str(tmp / f"{prog_stem}.{test_stem}.mem")
                 timps.append(timp)
@@ -126,7 +139,11 @@ def main():
             ninja.build([prog_stem + ".corrects"], "sum", corrs)
         for src in Path("programs").glob("*.zig"):
             prog_stem = src.stem
-            ninja.build([str(tmp / prog_stem), str((tmp / prog_stem).with_suffix('.o'))], "zig", [str(src)])
+            ninja.build(
+                [str(tmp / prog_stem), str((tmp / prog_stem).with_suffix(".o"))],
+                "zig",
+                [str(src)],
+            )
             progs.append(str(src))
             corrs = []
             timps = []
@@ -151,7 +168,12 @@ def main():
                         exe=str(tmp / prog_stem),
                     ),
                 )
-                ninja.build([corr], "diff", [outfile, outp], ["custom-compare"] if customCompare else [])
+                ninja.build(
+                    [corr],
+                    "diff",
+                    [outfile, outp],
+                    ["custom-compare"] if customCompare else [],
+                )
                 timp = str(tmp / f"{prog_stem}.{test_stem}.tim")
                 memp = str(tmp / f"{prog_stem}.{test_stem}.mem")
                 timps.append(timp)
