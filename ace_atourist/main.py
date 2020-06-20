@@ -25,6 +25,7 @@ def main():
             "zig",
             "zig build-exe --output-dir tmp --single-threaded -mcpu x86_64 --release-fast $in",
         )
+        ninja.rule("fpc", "fpc -O3 -XS -Xt -o$out $in")
         ninja.rule(
             "oiejq-bin",
             "sio2jail --mount-namespace off --pid-namespace off --uts-namespace off --ipc-namespace off --net-namespace off -s -f 3 -o oiaug -m $mem --instruction-count-limit $instr -- ./$exe <$inp >$outp 2>$errp 3>$infp",
@@ -78,6 +79,48 @@ def main():
                         errp=errp,
                         infp=infp,
                         exe=str(tmp / prog_stem),
+                    ),
+                )
+                ninja.build(
+                    [corr],
+                    "diff",
+                    [outfile, outp],
+                    ["custom-compare"] if customCompare else [],
+                )
+                timp = str(tmp / f"{prog_stem}.{test_stem}.tim")
+                memp = str(tmp / f"{prog_stem}.{test_stem}.mem")
+                timps.append(timp)
+                memps.append(memp)
+                ninja.build([memp], "extract-memory", [infp])
+                ninja.build([timp], "extract-time", [infp])
+            ninja.build([prog_stem + ".memsum"], "sum", memps)
+            ninja.build([prog_stem + ".timesum"], "sum", timps)
+            ninja.build([prog_stem + ".corrects"], "sum", corrs)
+        for src in Path("programs").glob("*.pas"):
+            prog_stem = src.stem
+            ninja.build([str(tmp / prog_stem)], "fpc", [str(src)])
+            progs.append(str(src))
+            corrs = []
+            timps = []
+            memps = []
+            for infile in ins:
+                outfile = str(infile.with_suffix(".out"))
+                test_stem = infile.stem
+                outp = str(tmp / f"{prog_stem}.{test_stem}.out")
+                errp = str(tmp / f"{prog_stem}.{test_stem}.err")
+                infp = str(tmp / f"{prog_stem}.{test_stem}.inf")
+                corr = str(tmp / f"{prog_stem}.{test_stem}.corr")
+                corrs.append(corr)
+                ninja.build(
+                    [outp, errp, infp],
+                    "oiejq-bin",
+                    [str(tmp / prog_stem), str(infile)],
+                    variables=dict(
+                        inp=str(infile),
+                        outp=outp,
+                        errp=errp,
+                        infp=infp,
+                        exe=tmp / prog_stem,
                     ),
                 )
                 ninja.build(
