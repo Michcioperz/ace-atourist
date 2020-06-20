@@ -16,7 +16,7 @@ def main():
         ninja.include("config.ninja")
         ninja.rule(
             "rustc",
-            "rustc -o $out -g --edition 2018 -C codegen-units=1 -C lto=fat -C target-cpu=x86-64 -C opt-level=3 -C target-feature=+crt-static $in",
+            "rustc -o $out -g --edition 2018 -C codegen-units=1 -C lto=fat -C target-cpu=x86-64 -C opt-level=3 -C target-feature=+crt-static -C panic=abort $in",
         )
         ninja.rule(
             "gplusplus", "g++ -o $out -static -O3 -g -march=x86-64 -std=c++17 $in"
